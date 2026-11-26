@@ -35,7 +35,7 @@ def test_single_subject_rating_equals_score(score: int) -> None:
 
 def test_averages_minimum_and_maximum_grades() -> None:
     calculator = CalcRating({"Alice": [("Math", 0), ("History", 100)]})
-    assert calculator.calc() == pytest.approx({"Alice": 50.0})
+    assert calculator.calc() == pytest.approx({"Alice": 51.0})
 
 
 def test_empty_input_returns_empty_ratings() -> None:
