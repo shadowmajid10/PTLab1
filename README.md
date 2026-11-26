@@ -1,5 +1,7 @@
 # Лабораторная работа № 1
 
+[![Testing the Python code](https://github.com/shadowmajid10/PTLab1/actions/workflows/github-actions-testing.yml/badge.svg?branch=main)](https://github.com/shadowmajid10/PTLab1/actions/workflows/github-actions-testing.yml)
+
 «Знакомство с системой контроля версий Git и инструментом CI/CD GitHub Actions»
 
 Курс «Технологии программирования».
