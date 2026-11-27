@@ -2,6 +2,7 @@ import argparse
 import sys
 from pathlib import Path
 
+from src.AcademicDebtCounter import AcademicDebtCounter
 from src.CalcRating import CalcRating
 from src.JsonDataReader import JsonDataReader
 from src.TextDataReader import TextDataReader
@@ -27,6 +28,12 @@ def main() -> None:
     ratings = CalcRating(data).calc()
     for student, rating in ratings.items():
         print(f"{student}: {rating:.2f}")
+
+    debt_count = AcademicDebtCounter(data).count()
+    print(
+        "Количество студентов с академическими задолженностями: "
+        f"{debt_count}"
+    )
 
 
 if __name__ == "__main__":
