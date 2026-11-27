@@ -50,7 +50,10 @@ def test_main_prints_cyrillic_ratings_to_two_decimal_places(
     monkeypatch.setattr(sys, "argv", ["main", "-p", str(sample_data)])
     main()
     captured = capsys.readouterr()
-    assert captured.out == "Иван Иванов: 82.50\nАнна Смирнова: 91.00\n"
+    assert captured.out == (
+        "Иван Иванов: 82.50\nАнна Смирнова: 91.00\n"
+        "Количество студентов с академическими задолженностями: 0\n"
+    )
     assert captured.err == ""
 
 
@@ -65,7 +68,10 @@ def test_module_execution_writes_utf8_to_captured_output(
         encoding="utf-8",
         check=True,
     )
-    assert result.stdout == "Иван Иванов: 82.50\nАнна Смирнова: 91.00\n"
+    assert result.stdout == (
+        "Иван Иванов: 82.50\nАнна Смирнова: 91.00\n"
+        "Количество студентов с академическими задолженностями: 0\n"
+    )
     assert result.stderr == ""
 
 
@@ -80,7 +86,10 @@ def test_module_reads_json_input(tmp_path: Path, extension: str) -> None:
         encoding="utf-8",
         check=True,
     )
-    assert result.stdout == "Иван: 80.00\n"
+    assert result.stdout == (
+        "Иван: 80.00\n"
+        "Количество студентов с академическими задолженностями: 0\n"
+    )
     assert result.stderr == ""
 
 
@@ -92,11 +101,15 @@ def test_sample_txt_and_json_produce_equivalent_ratings(
     json_path = data_dir / "data.json"
     monkeypatch.setattr(sys, "argv", ["main", "-p", str(txt_path)])
     main()
-    txt_ratings = capsys.readouterr().out
+    txt_output = capsys.readouterr().out
     monkeypatch.setattr(sys, "argv", ["main", "-p", str(json_path)])
     main()
-    assert len(txt_ratings.splitlines()) == 4
-    assert capsys.readouterr().out == txt_ratings
+    txt_lines = txt_output.splitlines()
+    assert len(txt_lines) == 5
+    assert txt_lines[-1] == (
+        "Количество студентов с академическими задолженностями: 0"
+    )
+    assert capsys.readouterr().out == txt_output
 
 
 @pytest.mark.parametrize("path", ["data.csv", "grades"])
@@ -106,3 +119,58 @@ def test_unsupported_extension_exits_with_message(
     monkeypatch.setattr(sys, "argv", ["main", "-p", path])
     with pytest.raises(SystemExit, match="Unsupported file extension"):
         main()
+
+
+def test_main_prints_cyrillic_debt_summary_after_ratings(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    path = tmp_path / "students.txt"
+    path.write_text(
+        "Анна\n    математика:40\n    история:50\nИван\n    литература:61\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(sys, "argv", ["main", "-p", str(path)])
+    main()
+    captured = capsys.readouterr()
+    assert captured.out == (
+        "Анна: 45.00\nИван: 61.00\n"
+        "Количество студентов с академическими задолженностями: 1\n"
+    )
+    assert captured.err == ""
+
+
+def test_main_prints_zero_debt_count_without_failing_grades(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    path = tmp_path / "students.json"
+    path.write_text(
+        '{"Иван": {"математика": 61}, "Анна": {}}', encoding="utf-8"
+    )
+    monkeypatch.setattr(sys, "argv", ["main", "-p", str(path)])
+    main()
+    captured = capsys.readouterr()
+    assert captured.out == (
+        "Иван: 61.00\nАнна: 0.00\n"
+        "Количество студентов с академическими задолженностями: 0\n"
+    )
+    assert captured.err == ""
+
+
+def test_demo_txt_and_json_report_the_same_debt_count(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str],
+) -> None:
+    data_dir = Path(__file__).resolve().parents[1] / "data"
+    txt_path = data_dir / "academic_debt.txt"
+    json_path = data_dir / "academic_debt.json"
+    monkeypatch.setattr(sys, "argv", ["main", "-p", str(txt_path)])
+    main()
+    txt_summary = capsys.readouterr().out.splitlines()[-1]
+    monkeypatch.setattr(sys, "argv", ["main", "-p", str(json_path)])
+    main()
+    json_summary = capsys.readouterr().out.splitlines()[-1]
+    assert txt_summary == (
+        "Количество студентов с академическими задолженностями: 2"
+    )
+    assert json_summary == txt_summary
