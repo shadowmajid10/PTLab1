@@ -13,3 +13,9 @@
 ```powershell
 python -m src.main -p data/data.txt
 ```
+
+## UML-диаграмма классов
+
+![Диаграмма классов проекта PTLab1 — Вариант 4](docs/class_diagram.svg)
+
+[Редактируемый исходник PlantUML](docs/class_diagram.puml)

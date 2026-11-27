@@ -1,0 +1,79 @@
+@startuml
+!pragma layout smetana
+title Диаграмма классов проекта PTLab1 — Вариант 4
+
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 16
+skinparam defaultFontColor #172B3D
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam componentStyle rectangle
+skinparam ArrowColor #496477
+skinparam nodesep 25
+skinparam ranksep 46
+skinparam class {
+    BackgroundColor #F1F6FC
+    BorderColor #577A9D
+    FontColor #172B3D
+}
+skinparam component {
+    BackgroundColor #EDF6EF
+    BorderColor #547A65
+}
+hide circle
+hide empty members
+allowmixing
+
+component CLI [
+  «module» **main.py**
+  ----
+  +get_path_from_arguments() : str
+  +main() : None
+]
+
+abstract class DataReader #EFF1F4 {
+    {abstract} +read(path: str) : DataType
+}
+
+class TextDataReader {
+    +read(path: str) : DataType
+}
+
+class JsonDataReader {
+    +read(path: str) : DataType
+}
+
+class CalcRating {
+    +data : DataType
+    +__init__(data: DataType) : None
+    +calc() : RatingType
+}
+
+class AcademicDebtCounter {
+    +data : DataType
+    +__init__(data: DataType) : None
+    +count() : int
+}
+
+component Types [
+  «module» **Types.py**
+  ----
+  +DataType = dict[str, list[tuple[str, int]]]
+  +RatingType = dict[str, float]
+]
+
+CLI ..> TextDataReader
+CLI ..> JsonDataReader
+CLI ..> CalcRating
+CLI ..> AcademicDebtCounter
+
+TextDataReader --|> DataReader
+JsonDataReader --|> DataReader
+
+DataReader ..> Types
+TextDataReader ..> Types
+JsonDataReader ..> Types
+CalcRating ..> Types
+AcademicDebtCounter ..> Types
+@enduml
