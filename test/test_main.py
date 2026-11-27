@@ -67,3 +67,42 @@ def test_module_execution_writes_utf8_to_captured_output(
     )
     assert result.stdout == "Иван Иванов: 82.50\nАнна Смирнова: 91.00\n"
     assert result.stderr == ""
+
+
+@pytest.mark.parametrize("extension", [".json", ".JSON"])
+def test_module_reads_json_input(tmp_path: Path, extension: str) -> None:
+    path = tmp_path / f"students{extension}"
+    path.write_text('{"Иван": {"математика": 80}}', encoding="utf-8")
+    result = subprocess.run(
+        [sys.executable, "-m", "src.main", "-p", str(path)],
+        cwd=Path(__file__).resolve().parents[1],
+        capture_output=True,
+        encoding="utf-8",
+        check=True,
+    )
+    assert result.stdout == "Иван: 80.00\n"
+    assert result.stderr == ""
+
+
+def test_sample_txt_and_json_produce_equivalent_ratings(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str],
+) -> None:
+    data_dir = Path(__file__).resolve().parents[1] / "data"
+    txt_path = data_dir / "data.txt"
+    json_path = data_dir / "data.json"
+    monkeypatch.setattr(sys, "argv", ["main", "-p", str(txt_path)])
+    main()
+    txt_ratings = capsys.readouterr().out
+    monkeypatch.setattr(sys, "argv", ["main", "-p", str(json_path)])
+    main()
+    assert len(txt_ratings.splitlines()) == 4
+    assert capsys.readouterr().out == txt_ratings
+
+
+@pytest.mark.parametrize("path", ["data.csv", "grades"])
+def test_unsupported_extension_exits_with_message(
+    monkeypatch: pytest.MonkeyPatch, path: str,
+) -> None:
+    monkeypatch.setattr(sys, "argv", ["main", "-p", path])
+    with pytest.raises(SystemExit, match="Unsupported file extension"):
+        main()
